@@ -96,19 +96,30 @@ public class JobManagement {
             System.out.println(ERROR_COLOR + "Invalid job ID." + RESET_COLOR);
             return;
         }
-
+    
         String query = "SELECT * FROM applications WHERE job_id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
+    
             preparedStatement.setInt(1, jobId);
-
+    
             ResultSet resultSet = preparedStatement.executeQuery();
             if (!resultSet.isBeforeFirst()) {
                 System.out.println(ERROR_COLOR + "No applicants found for this job." + RESET_COLOR);
                 return;
             }
-
+    
             while (resultSet.next()) {
                 System.out.println("Applicant ID: " + resultSet.getInt("applicant_id"));
-                System.out.pri
+                System.out.println("Name: " + resultSet.getString("name"));
+                System.out.println("Email: " + resultSet.getString("email"));
+                System.out.println("Application Date: " + resultSet.getDate("application_date"));
+                System.out.println("Status: " + resultSet.getString("status"));
+                System.out.println();
+            }
+        } catch (SQLException e) {
+            System.out.println(ERROR_COLOR + "Error retrieving applicants: " + e.getMessage() + RESET_COLOR);
+            e.printStackTrace();
+        }
+    }
+}    
