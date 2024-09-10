@@ -22,33 +22,60 @@ public class UserSignup {
             return;
         }
 
-        String query = "INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)";
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-            
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, email);
-            preparedStatement.setString(3, phone);
-            preparedStatement.setString(4, password);
+        // Check if the email ends with "@jobPortal.com"
+        if (email.endsWith("@jobPortal.com")) {
+            // Insert into admins table with name and contact fields
+            String query = "INSERT INTO admins (name, email, contact, password) VALUES (?, ?, ?, ?)";
+            try (Connection connection = DatabaseConnection.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                
+                preparedStatement.setString(1, name);
+                preparedStatement.setString(2, email);
+                preparedStatement.setString(3, phone); // contact is stored as phone
+                preparedStatement.setString(4, password);
 
-            int rowsAffected = preparedStatement.executeUpdate();
-            if (rowsAffected > 0) {
-                System.out.println(SUCCESS_COLOR + "Signup successful!" + RESET_COLOR);
-            } else {
-                System.out.println(ERROR_COLOR + "Signup failed!" + RESET_COLOR);
+                int rowsAffected = preparedStatement.executeUpdate();
+                if (rowsAffected > 0) {
+                    System.out.println(SUCCESS_COLOR + "Admin signup successful!" + RESET_COLOR);
+                } else {
+                    System.out.println(ERROR_COLOR + "Admin signup failed!" + RESET_COLOR);
+                }
+            } catch (SQLException e) {
+                System.out.println(ERROR_COLOR + "Error during admin signup: " + e.getMessage() + RESET_COLOR);
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            System.out.println(ERROR_COLOR + "Error during signup: " + e.getMessage() + RESET_COLOR);
-            e.printStackTrace();
+        } else {
+            // Insert into users table
+            String query = "INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)";
+            try (Connection connection = DatabaseConnection.getConnection();
+                 PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                
+                preparedStatement.setString(1, name);
+                preparedStatement.setString(2, email);
+                preparedStatement.setString(3, phone);
+                preparedStatement.setString(4, password);
+
+                int rowsAffected = preparedStatement.executeUpdate();
+                if (rowsAffected > 0) {
+                    System.out.println(SUCCESS_COLOR + "User signup successful!" + RESET_COLOR);
+                } else {
+                    System.out.println(ERROR_COLOR + "User signup failed!" + RESET_COLOR);
+                }
+            } catch (SQLException e) {
+                System.out.println(ERROR_COLOR + "Error during user signup: " + e.getMessage() + RESET_COLOR);
+                e.printStackTrace();
+            }
         }
     }
 
     private static boolean isEmailUnique(String email) {
-        String query = "SELECT COUNT(*) FROM users WHERE email = ?";
+        // Check uniqueness in both users and admins tables
+        String query = "SELECT COUNT(*) FROM users WHERE email = ? UNION SELECT COUNT(*) FROM admins WHERE email = ?";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setString(1, email);
+            preparedStatement.setString(2, email);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next() && resultSet.getInt(1) > 0) {
                 return false; // Email already exists

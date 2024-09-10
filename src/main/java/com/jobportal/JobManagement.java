@@ -5,26 +5,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+
 public class JobManagement {
     private static final String SUCCESS_COLOR = "\033[0;32m"; // Green
     private static final String ERROR_COLOR = "\033[0;31m";   // Red
     private static final String RESET_COLOR = "\033[0m";      // Reset
 
     public static void postJob(String title, String company, String location, String salaryRange, String description) {
-        if (title.isEmpty() || company.isEmpty() || location.isEmpty() || salaryRange.isEmpty() || description.isEmpty()) {
-            System.out.println(ERROR_COLOR + "All fields must be filled out." + RESET_COLOR);
-            return;
-        }
-
         String query = "INSERT INTO jobs (title, company, location, salary_range, description) VALUES (?, ?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
-            preparedStatement.setString(1, title);
-            preparedStatement.setString(2, company);
-            preparedStatement.setString(3, location);
-            preparedStatement.setString(4, salaryRange);
-            preparedStatement.setString(5, description);
+            preparedStatement.setString(1, title.trim());
+            preparedStatement.setString(2, company.trim());
+            preparedStatement.setString(3, location.trim());
+            preparedStatement.setString(4, salaryRange.trim());
+            preparedStatement.setString(5, description.trim());
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
@@ -38,16 +33,15 @@ public class JobManagement {
         }
     }
 
+    
     public static void updateJob(int jobId, String title, String company, String location, String salaryRange, String description) {
         if (jobId <= 0 || title.isEmpty() || company.isEmpty() || location.isEmpty() || salaryRange.isEmpty() || description.isEmpty()) {
             System.out.println(ERROR_COLOR + "Invalid input data." + RESET_COLOR);
             return;
         }
-
-        String query = "UPDATE jobs SET title = ?, company = ?, location = ?, salary_range = ?, description = ? WHERE job_id = ?";
+        String query = "UPDATE jobs SET title = ?, company = ?, location = ?, salary_range = ?, description = ? WHERE job_id = ? ";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
             preparedStatement.setString(1, title);
             preparedStatement.setString(2, company);
             preparedStatement.setString(3, location);
@@ -59,13 +53,19 @@ public class JobManagement {
             if (rowsAffected > 0) {
                 System.out.println(SUCCESS_COLOR + "Job updated successfully!" + RESET_COLOR);
             } else {
-                System.out.println(ERROR_COLOR + "Failed to update job or job does not exist." + RESET_COLOR);
+                System.out.println(ERROR_COLOR + "Failed to update job or job does not exist or you are not the owner." + RESET_COLOR);
             }
         } catch (SQLException e) {
             System.out.println(ERROR_COLOR + "Error updating job: " + e.getMessage() + RESET_COLOR);
             e.printStackTrace();
         }
     }
+    
+    
+
+ 
+
+
 
     public static void deleteJob(int jobId) {
         if (jobId <= 0) {
@@ -121,5 +121,38 @@ public class JobManagement {
             System.out.println(ERROR_COLOR + "Error retrieving applicants: " + e.getMessage() + RESET_COLOR);
             e.printStackTrace();
         }
+
+        
     }
+
+    public static void viewPostedJobsByAdminEmail(String adminEmail) {
+        String query = "SELECT jobs.* FROM jobs " +
+                       "JOIN admins ON jobs.admin_id = admins.admin_id " +
+                       "WHERE admins.email = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+    
+            preparedStatement.setString(1, adminEmail);
+            ResultSet resultSet = preparedStatement.executeQuery();
+    
+            if (!resultSet.isBeforeFirst()) {
+                System.out.println(ERROR_COLOR + "No jobs found for this admin email." + RESET_COLOR);
+                return;
+            }
+    
+            while (resultSet.next()) {
+                System.out.println("Job ID: " + resultSet.getInt("job_id"));
+                System.out.println("Title: " + resultSet.getString("title"));
+                System.out.println("Company: " + resultSet.getString("company"));
+                System.out.println("Location: " + resultSet.getString("location"));
+                System.out.println("Salary Range: " + resultSet.getString("salary_range"));
+                System.out.println("Description: " + resultSet.getString("description"));
+                System.out.println();
+            }
+        } catch (SQLException e) {
+            System.out.println(ERROR_COLOR + "Error retrieving posted jobs: " + e.getMessage() + RESET_COLOR);
+            e.printStackTrace();
+        }
+    }
+    
 }    

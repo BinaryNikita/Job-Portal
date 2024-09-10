@@ -10,14 +10,20 @@ public class JobApplication {
     private static final String ERROR_COLOR = "\033[0;31m";   // Red
     private static final String RESET_COLOR = "\033[0m";      // Reset
 
-    public static void applyForJob(int userId, int jobId, String coverLetter, String resumePath) {
+    public static void applyForJob(int userId, int jobId, String resumePath) {
         // Validate input (pseudo code)
-        if (userId <= 0 || jobId <= 0) {
+        if (userId <= 0 || jobId <=0) {
             System.out.println(ERROR_COLOR + "Invalid user ID or job ID." + RESET_COLOR);
             return;
         }
+        if(resumePath==null|| resumePath.trim().isEmpty())
+        {
+            System.out.println(ERROR_COLOR+"Resume Path cannot be empty."+RESET_COLOR);
+            return;
+        }
 
-        String query = "INSERT INTO applications (user_id, job_id, application_date, status) VALUES (?, ?, ?, ?)";
+
+        String query = "INSERT INTO applications (user_id, job_id, application_date,status,resumePath) VALUES (?, ?, ?, ?,?)";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
@@ -25,6 +31,7 @@ public class JobApplication {
             preparedStatement.setInt(2, jobId);
             preparedStatement.setDate(3, java.sql.Date.valueOf(LocalDate.now()));
             preparedStatement.setString(4, "Submitted");
+            preparedStatement.setString(5,resumePath);
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
