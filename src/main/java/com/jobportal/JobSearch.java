@@ -10,15 +10,25 @@ public class JobSearch {
     private static final String ERROR_COLOR = "\033[0;31m";   // Red
     private static final String RESET_COLOR = "\033[0m";      // Reset
 
-    public static void searchJobs(String title, String location, String jobType, String salaryRange) {
+    public static void searchJobs(String title, String location, String jobType, String company) {
         // Validate input
         if (title == null) title = "";
         if (location == null) location = "";
-        if (salaryRange == null) salaryRange = "";
+        if (company == null) company = "";
+        if (jobType == null) jobType = "";
 
         // Construct query
-        String query = "SELECT * FROM jobs WHERE title LIKE ? AND location LIKE ? AND salary_range LIKE ?";
-        if (jobType != null && !jobType.isEmpty()) {
+        String query = "SELECT * FROM jobs WHERE 1=1";
+        if (!title.trim().isEmpty()) {
+            query += " AND title LIKE ?";
+        }
+        if (!location.trim().isEmpty()) {
+            query += " AND location LIKE ?";
+        }
+        if (!company.trim().isEmpty()) {
+            query += " AND company LIKE ?";
+        }
+        if (!jobType.trim().isEmpty()) {
             query += " AND job_type = ?";
         }
 
@@ -26,11 +36,17 @@ public class JobSearch {
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
             int paramIndex = 1;
-            stmt.setString(paramIndex++, "%" + title + "%");
-            stmt.setString(paramIndex++, "%" + location + "%");
-            stmt.setString(paramIndex++, "%" + salaryRange + "%");
-            if (jobType != null && !jobType.isEmpty()) {
-                stmt.setString(paramIndex, jobType);
+            if (!title.trim().isEmpty()) {
+                stmt.setString(paramIndex++, "%" + title + "%");
+            }
+            if (!location.trim().isEmpty()) {
+                stmt.setString(paramIndex++, "%" + location + "%");
+            }
+            if (!company.trim().isEmpty()) {
+                stmt.setString(paramIndex++, "%" + company + "%");
+            }
+            if (!jobType.trim().isEmpty()) {
+                stmt.setString(paramIndex++, jobType);
             }
 
             ResultSet rs = stmt.executeQuery();
@@ -41,11 +57,14 @@ public class JobSearch {
 
             // Process result set
             while (rs.next()) {
+                System.out.println("====== Search Results ======");
+                System.out.println("Job ID: " + rs.getInt("job_id")); 
                 System.out.println("Job Title: " + rs.getString("title"));
                 System.out.println("Company: " + rs.getString("company"));
                 System.out.println("Location: " + rs.getString("location"));
                 System.out.println("Salary Range: " + rs.getString("salary_range"));
                 System.out.println("Description: " + rs.getString("description"));
+                System.out.println("Job Type: " + rs.getString("job_type")); // Added Job Type
                 System.out.println();
             }
         } catch (SQLException e) {
@@ -54,3 +73,5 @@ public class JobSearch {
         }
     }
 }
+
+

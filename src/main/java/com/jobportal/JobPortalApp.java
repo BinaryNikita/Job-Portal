@@ -1,7 +1,6 @@
 package com.jobportal;
 
 import java.util.Scanner;
-import java.sql.SQLException;
 
 public class JobPortalApp {
     private static Scanner scanner = new Scanner(System.in);
@@ -80,13 +79,11 @@ public class JobPortalApp {
         while (true) {
             System.out.println("\n==== User Dashboard ====");
             System.out.println("1. Create/Update Profile");
-            System.out.println("2. Search Job");
-            System.out.println("3. View Applied Jobs");
-            System.out.println("4. Apply for Job");
+            System.out.println("2. Apply for Job");
+            System.out.println("3. Search Job");
+            System.out.println("4. View Applied Jobs");
             System.out.println("5. View Job Recommendations");
-            System.out.println("6. View Resume (Upload/Update)");
-            System.out.println("7. View Job Alerts");
-            System.out.println("8. Logout");
+            System.out.println("6. Logout");
             System.out.print("Choose an option: ");
 
             int option = getValidIntegerInput();
@@ -97,24 +94,18 @@ public class JobPortalApp {
                     handleProfileManagement();
                     break;
                 case 2:
-                    handleJobSearch();
+                    handleJobApplication();
                     break;
                 case 3:
-                    handleViewAppliedJobs();
+                    handleJobSearch();
                     break;
                 case 4:
-                    handleJobApplication();
+                    handleViewAppliedJobs();
                     break;
                 case 5:
                     handleViewJobRecommendations();
                     break;
                 case 6:
-                    handleViewOrUpdateResume();
-                    break;
-                case 7:
-                    handleJobAlerts();
-                    break;
-                case 8:
                     System.out.println("Logging out...");
                     return;
                 default:
@@ -132,28 +123,30 @@ public class JobPortalApp {
         String skills = scanner.nextLine();
         System.out.print("Enter Achievements: ");
         String achievements = scanner.nextLine();
+        System.out.println("Enter you resume path: ");
+        String resumePath = scanner.nextLine();
 
-        ProfileManagement.createOrUpdateProfile(userId, education, skills, achievements);
+        ProfileManagement.createOrUpdateProfile(userId, education, skills, achievements, resumePath);
     }
 
     private static void handleJobSearch() {
         System.out.println("\n==== Search Job ====");
-        System.out.print("Enter Job Title or Company Name: ");
+        System.out.print("Enter Job Title: ");
         String title = scanner.nextLine();
         System.out.print("Filter by Location (optional): ");
         String location = scanner.nextLine();
         System.out.print("Filter by Job Type (full-time/part-time) (optional): ");
         String jobType = scanner.nextLine();
-        System.out.print("Filter by Salary Range (optional): ");
-        String salaryRange = scanner.nextLine();
+        System.out.print("Filter by Company Name: ");
+        String company = scanner.nextLine();
 
-        JobSearch.searchJobs(title, location, jobType, salaryRange);
+        JobSearch.searchJobs(title, location, jobType, company);
     }
 
     private static void handleJobApplication() {
-        int userId = getUserId(); // Replace with actual user ID retrieval
+        int userId = getUserId();
 
-        // Check if profile is complete
+
         if (!ProfileManagement.isProfileComplete(userId)) {
             System.out.println(ERROR_COLOR + "Please complete your profile before applying for jobs." + RESET_COLOR);
             return;
@@ -180,65 +173,6 @@ public class JobPortalApp {
         System.out.println("\n==== View Job Recommendations ====");
         int userId = getUserId(); // Replace with actual user ID retrieval
         JobRecommendations.viewJobRecommendations(userId);
-    }
-
-    private static void handleViewOrUpdateResume() {
-        System.out.println("\n==== View/Update Resume ====");
-        System.out.println("1. View Current Resume");
-        System.out.println("2. Upload New Resume");
-        System.out.println("3. Go Back");
-        System.out.print("Choose an option: ");
-
-        int option = getValidIntegerInput();
-        scanner.nextLine(); // Consume newline
-
-        switch (option) {
-            case 1:
-                System.out.print("Enter your Resume File Path: ");
-                String viewPath = scanner.nextLine();
-                ResumeManagement.viewResume(viewPath);
-                break;
-            case 2:
-                System.out.print("Enter the New Resume File Path: ");
-                String uploadPath = scanner.nextLine();
-                ResumeManagement.uploadResume(uploadPath);
-                break;
-            case 3:
-                return;
-            default:
-                System.out.println(ERROR_COLOR + "Invalid option. Please try again." + RESET_COLOR);
-        }
-    }
-
-    private static void handleJobAlerts() {
-        System.out.println("\n==== Job Alerts ====");
-        System.out.println("1. View Saved Job Alerts");
-        System.out.println("2. Add New Job Alert");
-        System.out.println("3. Go Back");
-        System.out.print("Choose an option: ");
-
-        int option = getValidIntegerInput();
-        int userId = getUserId(); // Replace with actual user ID retrieval
-        scanner.nextLine(); // Consume newline
-
-        switch (option) {
-            case 1:
-                JobAlerts.viewSavedJobAlerts(userId);
-                break;
-            case 2:
-                System.out.print("Enter Job Title: ");
-                String jobTitle = scanner.nextLine();
-                System.out.print("Enter Location: ");
-                String location = scanner.nextLine();
-                System.out.print("Enter Job Type (full-time/part-time): ");
-                String jobType = scanner.nextLine();
-                JobAlerts.addNewJobAlert(userId, jobTitle, location, jobType);
-                break;
-            case 3:
-                return;
-            default:
-                System.out.println(ERROR_COLOR + "Invalid option. Please try again." + RESET_COLOR);
-        }
     }
 
     private static void showAdminDashboard() {
@@ -341,12 +275,7 @@ public class JobPortalApp {
 
     private static void handleViewPostedJobs() {
         System.out.println("\n==== View Posted Jobs ====");
-        try {
-            JobManagement.viewPostedJobsByAdminEmail(loggedInAdminEmail);
-        } catch (SQLException e) {
-            System.out.println(ERROR_COLOR + "Error viewing posted jobs: " + e.getMessage() + RESET_COLOR);
-            e.printStackTrace();
-        }
+        JobManagement.viewPostedJobsByAdminEmail(loggedInAdminEmail);
     }
 
     private static void handleAdminLogin() {
