@@ -10,6 +10,7 @@ public class AdminLogin {
     private static final String SUCCESS_COLOR = "\033[0;32m"; // Green
     private static final String ERROR_COLOR = "\033[0;31m";   // Red
     private static final String RESET_COLOR = "\033[0m";      // Reset
+     static String loggedInAdminEmail;
 
     public static boolean login(String email, String password) {
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
@@ -20,6 +21,7 @@ public class AdminLogin {
         try (Connection conn = DatabaseConnection.getConnection()) {
             String query = "SELECT * FROM admins WHERE email = ? AND password = ?";
             try (PreparedStatement pstmt = conn.prepareStatement(query)) {
+                loggedInAdminEmail = email;
                 pstmt.setString(1, email);
                 pstmt.setString(2, password);
                 try (ResultSet rs = pstmt.executeQuery()) {

@@ -5,21 +5,24 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-
 public class JobManagement {
     private static final String SUCCESS_COLOR = "\033[0;32m"; // Green
-    private static final String ERROR_COLOR = "\033[0;31m";   // Red
-    private static final String RESET_COLOR = "\033[0m";      // Reset
+    private static final String ERROR_COLOR = "\033[0;31m"; // Red
+    private static final String RESET_COLOR = "\033[0m"; // Reset
 
     public static void postJob(String title, String company, String location, String salaryRange, String description) {
-        String query = "INSERT INTO jobs (title, company, location, salary_range, description) VALUES (?, ?, ?, ?, ?)";
+
+        String query = "INSERT INTO jobs (title, company, location, salary_range, description, admin_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            int adminId = getAdminId(AdminLogin.loggedInAdminEmail);
             preparedStatement.setString(1, title.trim());
             preparedStatement.setString(2, company.trim());
             preparedStatement.setString(3, location.trim());
             preparedStatement.setString(4, salaryRange.trim());
             preparedStatement.setString(5, description.trim());
+            preparedStatement.setInt(6, adminId);
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
@@ -33,15 +36,30 @@ public class JobManagement {
         }
     }
 
-    
-    public static void updateJob(int jobId, String title, String company, String location, String salaryRange, String description) {
-        if (jobId <= 0 || title.isEmpty() || company.isEmpty() || location.isEmpty() || salaryRange.isEmpty() || description.isEmpty()) {
+    private static int getAdminId(String adminEmail) throws SQLException {
+        String query = "SELECT admin_id FROM admins WHERE email = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+            preparedStatement.setString(1, adminEmail);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt("admin_id");
+            } else {
+                throw new SQLException("Admin not found for email: " + adminEmail);
+            }
+        }
+    }
+
+    public static void updateJob(int jobId, String title, String company, String location, String salaryRange,
+            String description) {
+        if (jobId <= 0 || title.isEmpty() || company.isEmpty() || location.isEmpty() || salaryRange.isEmpty()
+                || description.isEmpty()) {
             System.out.println(ERROR_COLOR + "Invalid input data." + RESET_COLOR);
             return;
         }
         String query = "UPDATE jobs SET title = ?, company = ?, location = ?, salary_range = ?, description = ? WHERE job_id = ? ";
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, title);
             preparedStatement.setString(2, company);
             preparedStatement.setString(3, location);
@@ -53,19 +71,14 @@ public class JobManagement {
             if (rowsAffected > 0) {
                 System.out.println(SUCCESS_COLOR + "Job updated successfully!" + RESET_COLOR);
             } else {
-                System.out.println(ERROR_COLOR + "Failed to update job or job does not exist or you are not the owner." + RESET_COLOR);
+                System.out.println(ERROR_COLOR + "Failed to update job or job does not exist or you are not the owner."
+                        + RESET_COLOR);
             }
         } catch (SQLException e) {
             System.out.println(ERROR_COLOR + "Error updating job: " + e.getMessage() + RESET_COLOR);
             e.printStackTrace();
         }
     }
-    
-    
-
- 
-
-
 
     public static void deleteJob(int jobId) {
         if (jobId <= 0) {
@@ -75,7 +88,7 @@ public class JobManagement {
 
         String query = "DELETE FROM jobs WHERE job_id = ?";
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
             preparedStatement.setInt(1, jobId);
 
@@ -96,23 +109,24 @@ public class JobManagement {
             System.out.println(ERROR_COLOR + "Invalid job ID." + RESET_COLOR);
             return;
         }
-    
-        String query = "SELECT users.user_id, users.name, users.email, applications.application_date, applications.status " +
-                       "FROM applications " +
-                       "JOIN users ON applications.user_id = users.user_id " +
-                       "WHERE applications.job_id = ?";
-    
+
+        String query = "SELECT users.user_id, users.name, users.email, applications.application_date, applications.status "
+                +
+                "FROM applications " +
+                "JOIN users ON applications.user_id = users.user_id " +
+                "WHERE applications.job_id = ?";
+
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-    
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
             preparedStatement.setInt(1, jobId);
             ResultSet resultSet = preparedStatement.executeQuery();
-    
+
             if (!resultSet.isBeforeFirst()) {
                 System.out.println(ERROR_COLOR + "No applicants found for this job." + RESET_COLOR);
                 return;
             }
-    
+
             while (resultSet.next()) {
                 System.out.println("====== Applicant ======");
                 System.out.println("Applicant ID: " + resultSet.getInt("user_id"));
@@ -127,23 +141,22 @@ public class JobManagement {
             e.printStackTrace();
         }
     }
-    
 
     public static void viewPostedJobsByAdminEmail(String adminEmail) {
         String query = "SELECT jobs.* FROM jobs " +
-                       "JOIN admins ON jobs.admin_id = admins.admin_id " +
-                       "WHERE admins.email = ?";
+                "JOIN admins ON jobs.admin_id = admins.admin_id " +
+                "WHERE admins.email = ?";
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-    
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
             preparedStatement.setString(1, adminEmail);
             ResultSet resultSet = preparedStatement.executeQuery();
-    
+
             if (!resultSet.isBeforeFirst()) {
                 System.out.println(ERROR_COLOR + "No jobs found for this admin email." + RESET_COLOR);
                 return;
             }
-    
+
             while (resultSet.next()) {
                 System.out.println("Job ID: " + resultSet.getInt("job_id"));
                 System.out.println("Title: " + resultSet.getString("title"));
@@ -158,5 +171,5 @@ public class JobManagement {
             e.printStackTrace();
         }
     }
-    
-}    
+
+}
