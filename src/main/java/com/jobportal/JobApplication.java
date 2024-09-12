@@ -6,12 +6,12 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 
 public class JobApplication {
-    private static final String SUCCESS_COLOR = "\033[0;32m"; // Green
-    private static final String ERROR_COLOR = "\033[0;31m";   // Red
-    private static final String RESET_COLOR = "\033[0m";      // Reset
+    private static final String SUCCESS_COLOR = "\033[0;32m"; 
+    private static final String ERROR_COLOR = "\033[0;31m";   
+    private static final String RESET_COLOR = "\033[0m";      
 
     public static void applyForJob(int userId, int jobId, String resumePath) {
-        // Validate input (pseudo code)
+        
         if (userId <= 0 || jobId <=0) {
             System.out.println(ERROR_COLOR + "Invalid user ID or job ID." + RESET_COLOR);
             return;

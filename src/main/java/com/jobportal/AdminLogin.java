@@ -7,10 +7,10 @@ import java.sql.SQLException;
 
 public class AdminLogin {
 
-    private static final String SUCCESS_COLOR = "\033[0;32m"; // Green
-    private static final String ERROR_COLOR = "\033[0;31m";   // Red
-    private static final String RESET_COLOR = "\033[0m";      // Reset
-     static String loggedInAdminEmail;
+    private static final String SUCCESS_COLOR = "\033[0;32m"; 
+    private static final String ERROR_COLOR = "\033[0;31m"; 
+    private static final String RESET_COLOR = "\033[0m"; 
+    static String loggedInAdminEmail;
 
     public static boolean login(String email, String password) {
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {

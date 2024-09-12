@@ -1,6 +1,7 @@
 package com.jobportal;
 
 import java.util.Scanner;
+import java.sql.*;
 
 public class JobPortalApp {
     private static Scanner scanner = new Scanner(System.in);
@@ -11,7 +12,7 @@ public class JobPortalApp {
 
     public static void main(String[] args) {
         while (true) {
-            System.out.println("\n==== Job Portal Console Clone ====");
+            System.out.println("\n==== Job Portal  ====");
             System.out.println("1. Login");
             System.out.println("2. Signup");
             System.out.println("3. Admin Login");
@@ -61,13 +62,11 @@ public class JobPortalApp {
         System.out.print("Enter your Password: ");
         String password = scanner.nextLine().trim();
 
-        // Check if email or password is empty
         if (email.isEmpty() || password.isEmpty()) {
             System.out.println(ERROR_COLOR + "Email and password cannot be empty." + RESET_COLOR);
             return;
         }
 
-        // Proceed with login if fields are not empty
         if (UserLogin.login(email, password)) {
             showUserDashboard();
         } else {
@@ -79,11 +78,12 @@ public class JobPortalApp {
         while (true) {
             System.out.println("\n==== User Dashboard ====");
             System.out.println("1. Create/Update Profile");
-            System.out.println("2. Apply for Job");
-            System.out.println("3. Search Job");
-            System.out.println("4. View Applied Jobs");
-            System.out.println("5. View Job Recommendations");
-            System.out.println("6. Logout");
+            System.out.println("2. Search Job");
+            System.out.println("3. Apply for Job");
+            System.out.println("4. View Job Recommendations");
+            System.out.println("5. View Applied Jobs");
+            System.out.println("6. View Profile");
+            System.out.println("7. Logout");
             System.out.print("Choose an option: ");
 
             int option = getValidIntegerInput();
@@ -94,18 +94,21 @@ public class JobPortalApp {
                     handleProfileManagement();
                     break;
                 case 2:
-                    handleJobApplication();
-                    break;
-                case 3:
                     handleJobSearch();
                     break;
-                case 4:
-                    handleViewAppliedJobs();
+                case 3:
+                    handleJobApplication();
                     break;
-                case 5:
+                case 4:
                     handleViewJobRecommendations();
                     break;
+                case 5:
+                    handleViewAppliedJobs();
+                    break;
                 case 6:
+                    ProfileManagement.viewProfile(getUserId()); // Call to view the user profile
+                    break;
+                case 7:
                     System.out.println("Logging out...");
                     return;
                 default:
@@ -117,16 +120,27 @@ public class JobPortalApp {
     private static void handleProfileManagement() {
         System.out.println("\n==== Create/Update Profile ====");
         int userId = getUserId(); // Replace with actual user ID retrieval
+
+        // Collect additional user information
+        System.out.print("Enter Name: ");
+        String name = scanner.nextLine();
+        System.out.print("Enter Contact (phone number): ");
+        String contact = scanner.nextLine();
+        System.out.print("Enter Email: ");
+        String email = scanner.nextLine();
+
         System.out.print("Enter Education: ");
         String education = scanner.nextLine();
         System.out.print("Enter Skills (comma-separated): ");
         String skills = scanner.nextLine();
         System.out.print("Enter Achievements: ");
         String achievements = scanner.nextLine();
-        System.out.println("Enter you resume path: ");
+        System.out.println("Enter your resume path: ");
         String resumePath = scanner.nextLine();
 
-        ProfileManagement.createOrUpdateProfile(userId, education, skills, achievements, resumePath);
+        // Call the ProfileManagement method with all the collected data
+        ProfileManagement.createOrUpdateProfile(userId, name, contact, email, education, skills, achievements,
+                resumePath);
     }
 
     private static void handleJobSearch() {
@@ -145,7 +159,6 @@ public class JobPortalApp {
 
     private static void handleJobApplication() {
         int userId = getUserId();
-
 
         if (!ProfileManagement.isProfileComplete(userId)) {
             System.out.println(ERROR_COLOR + "Please complete your profile before applying for jobs." + RESET_COLOR);
@@ -286,7 +299,7 @@ public class JobPortalApp {
         String adminPassword = scanner.nextLine().trim();
 
         if (AdminLogin.login(adminEmail, adminPassword)) {
-            loggedInAdminEmail = adminEmail; // Store logged-in admin email
+            loggedInAdminEmail = adminEmail;
             showAdminDashboard();
         } else {
             System.out.println(ERROR_COLOR + "Invalid admin email or password. Please try again." + RESET_COLOR);
@@ -296,14 +309,36 @@ public class JobPortalApp {
     private static int getValidIntegerInput() {
         while (!scanner.hasNextInt()) {
             System.out.println(ERROR_COLOR + "Invalid input. Please enter a number." + RESET_COLOR);
-            scanner.next(); // Clear invalid input
+            scanner.next();
         }
         return scanner.nextInt();
     }
 
     private static int getUserId() {
-        // Replace this stub with your actual user ID retrieval method
-        return 1; // Example user ID
+        if (UserLogin.loggedInEmail == null || UserLogin.loggedInEmail.trim().isEmpty()) {
+            System.out.println(ERROR_COLOR + "User not logged in or email is not available." + RESET_COLOR);
+            return -1;
+        }
+
+        String query = "SELECT user_id FROM users WHERE email = ?";
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            preparedStatement.setString(1, UserLogin.loggedInEmail);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                return resultSet.getInt("user_id");
+            } else {
+                System.out.println(
+                        ERROR_COLOR + "User ID not found for the email: " + UserLogin.loggedInEmail + RESET_COLOR);
+                return -1;
+            }
+        } catch (SQLException e) {
+            System.out.println(ERROR_COLOR + "Error retrieving user ID: " + e.getMessage() + RESET_COLOR);
+            e.printStackTrace();
+            return -1;
+        }
     }
 
 }

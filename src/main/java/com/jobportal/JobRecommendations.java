@@ -30,8 +30,7 @@ public class JobRecommendations {
             }
 
             while (resultSet.next()) {
-
-                System.out.println("====== Job Recommendations ======");
+                System.out.println();
                 System.out.println("Job ID: " + resultSet.getInt("job_id")); 
                 System.out.println("Job Title: " + resultSet.getString("title"));
                 System.out.println("Company: " + resultSet.getString("company"));

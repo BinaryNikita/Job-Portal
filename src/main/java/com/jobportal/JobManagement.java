@@ -109,29 +109,36 @@ public class JobManagement {
             System.out.println(ERROR_COLOR + "Invalid job ID." + RESET_COLOR);
             return;
         }
-
-        String query = "SELECT users.user_id, users.name, users.email, applications.application_date, applications.status "
-                +
-                "FROM applications " +
-                "JOIN users ON applications.user_id = users.user_id " +
-                "WHERE applications.job_id = ?";
-
+    
+        String query = "SELECT users.user_id, users.name, users.email, user_profiles.education, user_profiles.skills, " +
+                       "user_profiles.achievements, user_profiles.contact, user_profiles.resume_path, " +
+                       "applications.application_date, applications.status " +
+                       "FROM applications " +
+                       "JOIN users ON applications.user_id = users.user_id " +
+                       "JOIN user_profiles ON users.user_id = user_profiles.user_id " +
+                       "WHERE applications.job_id = ?";
+    
         try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+    
             preparedStatement.setInt(1, jobId);
             ResultSet resultSet = preparedStatement.executeQuery();
-
+    
             if (!resultSet.isBeforeFirst()) {
                 System.out.println(ERROR_COLOR + "No applicants found for this job." + RESET_COLOR);
                 return;
             }
-
+    
             while (resultSet.next()) {
                 System.out.println("====== Applicant ======");
                 System.out.println("Applicant ID: " + resultSet.getInt("user_id"));
                 System.out.println("Name: " + resultSet.getString("name"));
                 System.out.println("Email: " + resultSet.getString("email"));
+                System.out.println("Education: " + resultSet.getString("education"));
+                System.out.println("Skills: " + resultSet.getString("skills"));
+                System.out.println("Achievements: " + resultSet.getString("achievements"));
+                System.out.println("Contact: " + resultSet.getString("contact"));
+                System.out.println("Resume Path: " + resultSet.getString("resume_path"));
                 System.out.println("Application Date: " + resultSet.getDate("application_date"));
                 System.out.println("Status: " + resultSet.getString("status"));
                 System.out.println();
@@ -141,6 +148,7 @@ public class JobManagement {
             e.printStackTrace();
         }
     }
+    
 
     public static void viewPostedJobsByAdminEmail(String adminEmail) {
         String query = "SELECT jobs.* FROM jobs " +

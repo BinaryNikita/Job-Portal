@@ -19,9 +19,9 @@ public class DatabaseConnection {
 }
 
 class TestDatabaseConnection {
-    private static final String SUCCESS_COLOR = "\033[0;32m"; // Green
-    private static final String ERROR_COLOR = "\033[0;31m";   // Red
-    private static final String RESET_COLOR = "\033[0m";      // Reset
+    private static final String SUCCESS_COLOR = "\033[0;32m"; 
+    private static final String ERROR_COLOR = "\033[0;31m";   
+    private static final String RESET_COLOR = "\033[0m";      
 
     public static void main(String[] args) {
         try {

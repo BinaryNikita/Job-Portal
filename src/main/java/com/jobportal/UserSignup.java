@@ -22,16 +22,16 @@ public class UserSignup {
             return;
         }
 
-        // Check if the email ends with "@jobPortal.com"
+
         if (email.endsWith("@jobPortal.com")) {
-            // Insert into admins table with name and contact fields
+
             String query = "INSERT INTO admins (name, email, contact, password) VALUES (?, ?, ?, ?)";
             try (Connection connection = DatabaseConnection.getConnection();
                  PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 
                 preparedStatement.setString(1, name);
                 preparedStatement.setString(2, email);
-                preparedStatement.setString(3, phone); // contact is stored as phone
+                preparedStatement.setString(3, phone); 
                 preparedStatement.setString(4, password);
 
                 int rowsAffected = preparedStatement.executeUpdate();
@@ -45,7 +45,7 @@ public class UserSignup {
                 e.printStackTrace();
             }
         } else {
-            // Insert into users table
+
             String query = "INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)";
             try (Connection connection = DatabaseConnection.getConnection();
                  PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -69,7 +69,7 @@ public class UserSignup {
     }
 
     private static boolean isEmailUnique(String email) {
-        // Check uniqueness in both users and admins tables
+
         String query = "SELECT COUNT(*) FROM users WHERE email = ? UNION SELECT COUNT(*) FROM admins WHERE email = ?";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -78,12 +78,12 @@ public class UserSignup {
             preparedStatement.setString(2, email);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next() && resultSet.getInt(1) > 0) {
-                return false; // Email already exists
+                return false; 
             }
         } catch (SQLException e) {
             System.out.println(ERROR_COLOR + "Error checking email uniqueness: " + e.getMessage() + RESET_COLOR);
             e.printStackTrace();
         }
-        return true; // Email is unique
+        return true; 
     }
 }

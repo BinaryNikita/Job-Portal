@@ -9,13 +9,13 @@ public class UserLogin {
     private static final String SUCCESS_COLOR = "\033[0;32m"; // Green
     private static final String ERROR_COLOR = "\033[0;31m";   // Red
     private static final String RESET_COLOR = "\033[0m";      // Reset
-
+    static String loggedInEmail;
     public static boolean login(String email, String password) {
         if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             System.out.println(ERROR_COLOR + "Email and password cannot be empty." + RESET_COLOR);
             return false;
         }
-
+        loggedInEmail = email;
         String query = "SELECT * FROM users WHERE email = ? AND password = ?";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
