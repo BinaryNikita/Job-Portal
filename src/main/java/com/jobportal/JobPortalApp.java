@@ -5,9 +5,8 @@ import java.sql.*;
 
 public class JobPortalApp {
     private static Scanner scanner = new Scanner(System.in);
-    private static final String SUCCESS_COLOR = "\033[0;32m"; // Green
-    private static final String ERROR_COLOR = "\033[0;31m"; // Red
-    private static final String RESET_COLOR = "\033[0m"; // Reset
+    private static final String ERROR_COLOR = "\033[0;31m"; 
+    private static final String RESET_COLOR = "\033[0m"; 
     private static String loggedInAdminEmail = "";
 
     public static void main(String[] args) {
@@ -20,7 +19,7 @@ public class JobPortalApp {
             System.out.print("Choose an option: ");
 
             int option = getValidIntegerInput();
-            scanner.nextLine(); // Consume newline
+            scanner.nextLine(); 
 
             switch (option) {
                 case 1:
@@ -106,7 +105,7 @@ public class JobPortalApp {
                     handleViewAppliedJobs();
                     break;
                 case 6:
-                    ProfileManagement.viewProfile(getUserId()); // Call to view the user profile
+                    ProfileManagement.viewProfile(getUserId()); 
                     break;
                 case 7:
                     System.out.println("Logging out...");
@@ -119,7 +118,7 @@ public class JobPortalApp {
 
     private static void handleProfileManagement() {
         System.out.println("\n==== Create/Update Profile ====");
-        int userId = getUserId(); // Replace with actual user ID retrieval
+        int userId = getUserId(); 
 
         // Collect additional user information
         System.out.print("Enter Name: ");
@@ -137,10 +136,12 @@ public class JobPortalApp {
         String achievements = scanner.nextLine();
         System.out.println("Enter your resume path: ");
         String resumePath = scanner.nextLine();
+        System.out.println("Enter your experience: ");
+        String experience = scanner.nextLine();
 
-        // Call the ProfileManagement method with all the collected data
+
         ProfileManagement.createOrUpdateProfile(userId, name, contact, email, education, skills, achievements,
-                resumePath);
+                resumePath, experience);
     }
 
     private static void handleJobSearch() {
@@ -239,8 +240,10 @@ public class JobPortalApp {
         String salaryRange = scanner.nextLine();
         System.out.print("Enter Job Description: ");
         String description = scanner.nextLine();
+        System.out.println("Enter the experience required: ");
+        String experienceRequired = scanner.nextLine();
 
-        JobManagement.postJob(title, company, location, salaryRange, description);
+        JobManagement.postJob(title, company, location, salaryRange, description, experienceRequired);
     }
 
     private static void handleUpdateJobPosting() {
@@ -260,8 +263,10 @@ public class JobPortalApp {
         String salaryRange = scanner.nextLine();
         System.out.print("Job Description: ");
         String description = scanner.nextLine();
+        System.out.println("Enter experience required: ");
+        String experienceRequired = scanner.nextLine();
 
-        JobManagement.updateJob(jobId, title, company, location, salaryRange, description);
+        JobManagement.updateJob(jobId, title, company, location, salaryRange, description, experienceRequired);
     }
 
     private static void handleDeleteJobPosting() {
@@ -342,3 +347,6 @@ public class JobPortalApp {
     }
 
 }
+
+
+

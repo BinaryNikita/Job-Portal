@@ -16,7 +16,7 @@ public class JobRecommendations {
             return;
         }
 
-        // Example recommendation query: Find jobs similar to those previously applied for
+
         String query = "SELECT * FROM jobs WHERE job_id IN (SELECT job_id FROM applications WHERE user_id = ?)";
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(query)) {
@@ -37,6 +37,8 @@ public class JobRecommendations {
                 System.out.println("Location: " + resultSet.getString("location"));
                 System.out.println("Salary Range: " + resultSet.getString("salary_range"));
                 System.out.println("Description: " + resultSet.getString("description"));
+                System.out.println("Job Posted on " + resultSet.getString("posted_date"));
+
                 System.out.println();
             }
         } catch (SQLException e) {

@@ -11,7 +11,7 @@ public class ProfileManagement {
     private static final String RESET_COLOR = "\033[0m";      // Reset
 
 
-    public static void createOrUpdateProfile(int userId, String name, String contact, String email, String education, String skills, String achievements, String resumeFilePath) {
+    public static void createOrUpdateProfile(int userId, String name, String contact, String email, String education, String skills, String achievements, String resumeFilePath, String experience) {
         if ((education == null || education.trim().isEmpty()) ||
             (skills == null || skills.trim().isEmpty()) ||
             (achievements == null || achievements.trim().isEmpty())) {
@@ -19,10 +19,10 @@ public class ProfileManagement {
             return;
         }
 
-        String query = "INSERT INTO user_profiles (user_id, name, contact, email, education, skills, achievements, resume_path) " +
-                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " +
+        String query = "INSERT INTO user_profiles (user_id, name, contact, email, education, skills, achievements, resume_path, experience) " +
+                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " +
                        "name = VALUES(name), contact = VALUES(contact), email = VALUES(email), " +
-                       "education = VALUES(education), skills = VALUES(skills), achievements = VALUES(achievements), resume_path = VALUES(resume_path)";
+                       "education = VALUES(education), skills = VALUES(skills), achievements = VALUES(achievements), resume_path = VALUES(resume_path), experience = VALUES(experience)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -34,7 +34,8 @@ public class ProfileManagement {
             stmt.setString(5, education);
             stmt.setString(6, skills);
             stmt.setString(7, achievements);
-            stmt.setString(8, resumeFilePath); // Store resume path as text
+            stmt.setString(8, resumeFilePath); 
+            stmt.setString(9, experience);
 
             stmt.executeUpdate();
             System.out.println(SUCCESS_COLOR + "Profile created/updated successfully!" + RESET_COLOR);
@@ -47,7 +48,7 @@ public class ProfileManagement {
 
     // View user profile
     public static void viewProfile(int userId) {
-        String query = "SELECT name, contact, email, education, skills, achievements, resume_path FROM user_profiles WHERE user_id = ?";
+        String query = "SELECT name, contact, email, education, skills, achievements, resume_path, experience FROM user_profiles WHERE user_id = ?";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
@@ -63,6 +64,7 @@ public class ProfileManagement {
                 System.out.println("Skills: " + resultSet.getString("skills"));
                 System.out.println("Achievements: " + resultSet.getString("achievements"));
                 System.out.println("Resume Path: " + resultSet.getString("resume_path"));
+                System.out.println("Experience: " + resultSet.getString("experience"));
                 System.out.println();
             } else {
                 System.out.println(ERROR_COLOR + "Profile not found for user." + RESET_COLOR);

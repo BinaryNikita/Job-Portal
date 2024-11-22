@@ -10,9 +10,9 @@ public class JobManagement {
     private static final String ERROR_COLOR = "\033[0;31m"; // Red
     private static final String RESET_COLOR = "\033[0m"; // Reset
 
-    public static void postJob(String title, String company, String location, String salaryRange, String description) {
+    public static void postJob(String title, String company, String location, String salaryRange, String description, String experienceRequired) {
 
-        String query = "INSERT INTO jobs (title, company, location, salary_range, description, admin_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO jobs (title, company, location, salary_range, description, admin_id, experience) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
@@ -23,6 +23,8 @@ public class JobManagement {
             preparedStatement.setString(4, salaryRange.trim());
             preparedStatement.setString(5, description.trim());
             preparedStatement.setInt(6, adminId);
+            preparedStatement.setString(7, experienceRequired.trim());
+            
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
@@ -51,13 +53,13 @@ public class JobManagement {
     }
 
     public static void updateJob(int jobId, String title, String company, String location, String salaryRange,
-            String description) {
+            String description, String experience) {
         if (jobId <= 0 || title.isEmpty() || company.isEmpty() || location.isEmpty() || salaryRange.isEmpty()
                 || description.isEmpty()) {
             System.out.println(ERROR_COLOR + "Invalid input data." + RESET_COLOR);
             return;
         }
-        String query = "UPDATE jobs SET title = ?, company = ?, location = ?, salary_range = ?, description = ? WHERE job_id = ? ";
+        String query = "UPDATE jobs SET title = ?, company = ?, location = ?, salary_range = ?, description = ?, experience = ? WHERE job_id = ? ";
         try (Connection connection = DatabaseConnection.getConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(query)) {
             preparedStatement.setString(1, title);
@@ -66,6 +68,7 @@ public class JobManagement {
             preparedStatement.setString(4, salaryRange);
             preparedStatement.setString(5, description);
             preparedStatement.setInt(6, jobId);
+            preparedStatement.setString(7, experience);
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
@@ -129,19 +132,26 @@ public class JobManagement {
                 return;
             }
     
+            // Print table header
+            System.out.printf("%-10s %-20s %-40s %-15s %-20s %-20s %-15s %-40s %-20s %-10s%n",
+                    "User ID", "Name", "Email", "Education", "Skills", "Achievements", "Contact",
+                    "Resume Path", "Application Date", "Status");
+            System.out.println("---------------------------------------------------------------------------------------------------------------" +
+                    "-----------------------------------------------------------------");
+    
+            // Print each applicant in tabular format
             while (resultSet.next()) {
-                System.out.println("====== Applicant ======");
-                System.out.println("Applicant ID: " + resultSet.getInt("user_id"));
-                System.out.println("Name: " + resultSet.getString("name"));
-                System.out.println("Email: " + resultSet.getString("email"));
-                System.out.println("Education: " + resultSet.getString("education"));
-                System.out.println("Skills: " + resultSet.getString("skills"));
-                System.out.println("Achievements: " + resultSet.getString("achievements"));
-                System.out.println("Contact: " + resultSet.getString("contact"));
-                System.out.println("Resume Path: " + resultSet.getString("resume_path"));
-                System.out.println("Application Date: " + resultSet.getDate("application_date"));
-                System.out.println("Status: " + resultSet.getString("status"));
-                System.out.println();
+                System.out.printf("%-10d %-20s %-30s %-15s %-40s %-20s %-15s %-50s %-20s %-10s%n",
+                        resultSet.getInt("user_id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("email"),
+                        resultSet.getString("education"),
+                        resultSet.getString("skills"),
+                        resultSet.getString("achievements"),
+                        resultSet.getString("contact"),
+                        resultSet.getString("resume_path"),
+                        resultSet.getDate("application_date"),
+                        resultSet.getString("status"));
             }
         } catch (SQLException e) {
             System.out.println(ERROR_COLOR + "Error retrieving applicants: " + e.getMessage() + RESET_COLOR);
@@ -152,32 +162,39 @@ public class JobManagement {
 
     public static void viewPostedJobsByAdminEmail(String adminEmail) {
         String query = "SELECT jobs.* FROM jobs " +
-                "JOIN admins ON jobs.admin_id = admins.admin_id " +
-                "WHERE admins.email = ?";
+                       "JOIN admins ON jobs.admin_id = admins.admin_id " +
+                       "WHERE admins.email = ?";
+    
         try (Connection connection = DatabaseConnection.getConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+    
             preparedStatement.setString(1, adminEmail);
             ResultSet resultSet = preparedStatement.executeQuery();
-
+    
             if (!resultSet.isBeforeFirst()) {
                 System.out.println(ERROR_COLOR + "No jobs found for this admin email." + RESET_COLOR);
                 return;
             }
-
+    
+            // Print table header
+            System.out.printf("%-10s %-20s %-20s %-20s %-15s %-50s%n",
+                    "Job ID", "Title", "Company", "Location", "Salary Range", "Description");
+            System.out.println("-------------------------------------------------------------------------------------------------------------------------------------------------------");
+    
+            // Print each job in tabular format
             while (resultSet.next()) {
-                System.out.println("Job ID: " + resultSet.getInt("job_id"));
-                System.out.println("Title: " + resultSet.getString("title"));
-                System.out.println("Company: " + resultSet.getString("company"));
-                System.out.println("Location: " + resultSet.getString("location"));
-                System.out.println("Salary Range: " + resultSet.getString("salary_range"));
-                System.out.println("Description: " + resultSet.getString("description"));
-                System.out.println();
+                System.out.printf("%-10d %-20s %-20s %-20s %-15s %-80s%n",
+                        resultSet.getInt("job_id"),
+                        resultSet.getString("title"),
+                        resultSet.getString("company"),
+                        resultSet.getString("location"),
+                        resultSet.getString("salary_range"),
+                        resultSet.getString("description"));
+                        resultSet.getString("experience");
             }
         } catch (SQLException e) {
             System.out.println(ERROR_COLOR + "Error retrieving posted jobs: " + e.getMessage() + RESET_COLOR);
             e.printStackTrace();
         }
     }
-
-}
+}    

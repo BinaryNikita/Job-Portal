@@ -17,6 +17,12 @@ public class JobSearch {
         if (company == null) company = "";
         if (jobType == null) jobType = "";
 
+        String userExperience = getUserExperience(UserLogin.loggedInEmail);
+        if (userExperience == null) {
+            System.out.println(ERROR_COLOR + "Unable to determine user experience." + RESET_COLOR);
+            return;
+        }
+
         // Construct query
         String query = "SELECT * FROM jobs WHERE 1=1";
         if (!title.trim().isEmpty()) {
@@ -31,6 +37,8 @@ public class JobSearch {
         if (!jobType.trim().isEmpty()) {
             query += " AND job_type = ?";
         }
+        // Add experience filter based on the user's experience
+        query += " AND experience = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -48,6 +56,8 @@ public class JobSearch {
             if (!jobType.trim().isEmpty()) {
                 stmt.setString(paramIndex++, jobType);
             }
+            // Set the user's experience (fresher/experienced)
+            stmt.setString(paramIndex++, userExperience);
 
             ResultSet rs = stmt.executeQuery();
             if (!rs.isBeforeFirst()) {
@@ -64,7 +74,9 @@ public class JobSearch {
                 System.out.println("Location: " + rs.getString("location"));
                 System.out.println("Salary Range: " + rs.getString("salary_range"));
                 System.out.println("Description: " + rs.getString("description"));
-                System.out.println("Job Type: " + rs.getString("job_type")); // Added Job Type
+                System.out.println("Job Type: " + rs.getString("job_type"));
+                System.out.println("Experience: " + rs.getString("experience"));
+                System.out.println("Job Posted on " + rs.getString("posted_date"));
                 System.out.println();
             }
         } catch (SQLException e) {
@@ -72,6 +84,22 @@ public class JobSearch {
             e.printStackTrace();
         }
     }
+
+    // Helper method to get user's experience from the user_profiles table
+    private static String getUserExperience(String email) {
+        String experience = null;
+        String query = "SELECT experience FROM user_profiles WHERE email = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, email);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                experience = rs.getString("experience");
+            }
+        } catch (SQLException e) {
+            System.out.println(ERROR_COLOR + "Error retrieving user experience: " + e.getMessage() + RESET_COLOR);
+            e.printStackTrace();
+        }
+        return experience;
+    }
 }
-
-
